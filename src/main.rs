@@ -1,4 +1,7 @@
-use std::{io, cmp::Ordering};
+use std::{
+    io::stdin,
+    cmp::Ordering
+};
 use rand::{thread_rng as rng, Rng};
 
 fn main() {
@@ -8,33 +11,47 @@ fn main() {
     let secret_number: u8 = rng().gen_range(1..=100);
 
     loop {
-        // Get user guess (TODO: Refactor to its own function)
-        println!("Enter your guess:");
-
-        let mut guess = String::new();
-
-        io::stdin()
-            .read_line(&mut guess)
-            .expect("Failed to read line"); // TODO: Refactor with proper error handling
-        
-        let guess: u8 = match guess.trim().parse() {  // TODO: Refactor once inside its own function
-            Ok(num) => num,
-            Err(_) => {
+        match get_user_guess() {
+            GuessResult::Ok(guess) => match guess.cmp(&secret_number) {
+                Ordering::Less => println!("Guess is smaller than the secret!"),
+                Ordering::Greater => println!("Guess is bigger than the secret!"),
+                Ordering::Equal => {
+                    println!("You guessed the secret!");
+                    break
+                }
+            },
+            GuessResult::ParseError => {
                 println!("Guess is not a valid answer, try again!");
+                continue
+            },
+            GuessResult::IOError => {
+                println!("Failed to read line, try again.");
                 continue
             }
         };
+    }
+}
 
-        // Compare guess with secret number
-        println!("You guessed: {guess}");
+// TODO: Move to its own file
+enum GuessResult {
+    Ok(u8),
+    IOError,
+    ParseError
+}
 
-        match guess.cmp(&secret_number) {
-            Ordering::Less => println!("Guess is smaller than the secret!"),
-            Ordering::Greater => println!("Guess is bigger than the secret!"),
-            Ordering::Equal => {
-                println!("You guessed the secret!");
-                break
-            }
-        }
+fn get_user_guess() -> GuessResult {
+    println!("Enter your guess:");
+    
+    let mut guess = String::new();
+
+    // Return IO error
+    if let Err(_) = stdin().read_line(&mut guess) {
+        return GuessResult::IOError
+    }
+
+    // No IO error, so attempt parsing
+    match guess.trim().parse::<u8>() {
+        Ok(num) => GuessResult::Ok(num),
+        Err(_) => GuessResult::ParseError
     }
 }
