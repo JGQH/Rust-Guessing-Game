@@ -5,30 +5,36 @@ fn main() {
     println!("Guess the number!");
 
     // Create secret number
-
     let secret_number: u8 = rng().gen_range(1..=100);
 
-    println!("The secret number is: {secret_number}");
+    loop {
+        // Get user guess (TODO: Refactor to its own function)
+        println!("Enter your guess:");
 
-    // Get user guess (TODO: Refactor to its own function)
+        let mut guess = String::new();
 
-    println!("Enter your guess:");
+        io::stdin()
+            .read_line(&mut guess)
+            .expect("Failed to read line"); // TODO: Refactor with proper error handling
+        
+        let guess: u8 = match guess.trim().parse() {  // TODO: Refactor once inside its own function
+            Ok(num) => num,
+            Err(_) => {
+                println!("Guess is not a valid answer, try again!");
+                continue
+            }
+        };
 
-    let mut guess = String::new();
+        // Compare guess with secret number
+        println!("You guessed: {guess}");
 
-    io::stdin()
-        .read_line(&mut guess)
-        .expect("Failed to read line"); // TODO: Refactor with proper error handling
-    
-    let guess: u8 = guess.trim().parse().expect("Please type a number!"); // TODO: Refactor to with proper error handling
-
-    // Compare guess with secret number
-
-    println!("You guessed: {guess}");
-
-    match guess.cmp(&secret_number) {
-        Ordering::Less => println!("Number is smaller!"),
-        Ordering::Greater => println!("Number is bigger!"),
-        Ordering::Equal => println!("You guessed the number!")
+        match guess.cmp(&secret_number) {
+            Ordering::Less => println!("Guess is smaller than the secret!"),
+            Ordering::Greater => println!("Guess is bigger than the secret!"),
+            Ordering::Equal => {
+                println!("You guessed the secret!");
+                break
+            }
+        }
     }
 }
